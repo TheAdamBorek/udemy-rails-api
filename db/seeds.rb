@@ -5,3 +5,7 @@
 #
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
+
+3.times do |index|
+  Article.create!(title: "Article title #{index}", content: "The content of the article #{index}", slug: "Article slug: #{index}")
+end

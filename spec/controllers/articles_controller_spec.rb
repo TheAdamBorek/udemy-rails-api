@@ -28,6 +28,21 @@ describe ArticlesController do
     end
   end
 
+  describe '#show' do
+    let(:article) { create :article }
+    subject { get :show, params:  { id: article.id } }
+
+    it 'should return success response' do
+      subject
+      expect(response).to have_http_status :ok
+    end
+
+    it 'should render an article with given id' do
+      subject
+      expect(json_data['attributes']).to eq expected_attributes_for(article)
+    end
+  end
+
   def expected_attributes_for(article)
     {
         'title'   => article.title,

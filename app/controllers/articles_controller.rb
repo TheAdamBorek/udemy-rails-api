@@ -5,6 +5,7 @@ class ArticlesController < ApplicationController
   end
 
   def show
-    render json: params[:id]
+    article = Article.find_by_id(params[:id])
+    render json: article
   end
 end
