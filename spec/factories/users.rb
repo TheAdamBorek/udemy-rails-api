@@ -1,9 +1,9 @@
 FactoryBot.define do
   factory :user do
-    login { "MyString" }
-    name { "MyString" }
-    url { "MyString" }
-    avatar_url { "MyString" }
-    provider { "MyString" }
+    sequence(:login) { |n| "Login #{n}" }
+    name { "Name" }
+    url { "https://fakeimg.pl/200x200" }
+    avatar_url { "https://fakeimg.pl/200x200" }
+    provider { "github" }
   end
 end

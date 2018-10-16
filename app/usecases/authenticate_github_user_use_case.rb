@@ -7,6 +7,11 @@ class AuthenticateGithubUserUseCase
     access_token = fetch_access_token code
     user_data = fetch_user_data access_token
     prepare_user_for user_data
+    @access_token = if @user.access_token.present?
+      user.access_token
+    else
+      user.create_access_token
+    end
   end
 
   private

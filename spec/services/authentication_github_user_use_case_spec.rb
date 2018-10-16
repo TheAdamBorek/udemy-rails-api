@@ -49,6 +49,11 @@ describe AuthenticateGithubUserUseCase do
         expect { subject }.to_not change { User.count }
         expect(useCase.user.id).to eq user.id
       end
+
+      it 'should creates and sets user access token' do
+        expect { subject }.to change { AccessToken.count }.by 1
+        expect(useCase.access_token).to be_present
+      end
     end
   end
 end
