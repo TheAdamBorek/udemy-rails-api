@@ -21,7 +21,7 @@ describe AuthenticateGithubUserUseCase do
       end
     end
 
-    context 'when token is correct' do
+    context 'when code is correct' do
       let(:user_data) do
         {
             login: 'jsmith1',
@@ -30,15 +30,24 @@ describe AuthenticateGithubUserUseCase do
             name: 'John Smith'
         }
       end
+
       before do
         allow_any_instance_of(Octokit::Client)
           .to receive(:exchange_code_for_token).and_return('valid_access_token')
         allow_any_instance_of(Octokit::Client)
           .to receive(:user).and_return(user_data)
       end
+
       it 'should save the user when it does not exists' do
         expect{ subject }.to change { User.count }.by 1
         expect(User.last.name).to eq 'John Smith'
+        expect(useCase.user.id).to eq User.last.id
+      end
+
+      it 'should fetch user if it exists already' do
+        user = User.create!(user_data.merge(provider: 'github'))
+        expect { subject }.to_not change { User.count }
+        expect(useCase.user.id).to eq user.id
       end
     end
   end

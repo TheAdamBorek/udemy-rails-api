@@ -1,13 +1,16 @@
 class AuthenticationError < StandardError; end
 
 class AuthenticateGithubUserUseCase
+  attr_reader :user
+
   def authenticate_user(code)
     access_token = fetch_access_token code
     user_data = fetch_user_data access_token
-    User.create! user_data
+    prepare_user_for user_data
   end
 
   private
+
   def fetch_access_token(code)
     access_token = exchange_github_code_for_token code
     if access_token.try(:error).present?
@@ -17,9 +20,11 @@ class AuthenticateGithubUserUseCase
   end
 
   def exchange_github_code_for_token(code)
+    client_id = ENV['GITHUB_CLIENT_ID']
+    client_secret = ENV['GITHUB_CLIENT_SECRET']
     client = Octokit::Client.new(
-        client_id:     ENV['GITHUB_CLIENT_ID'],
-        client_secret: ENV['GITHUB_CLIENT_SECRET']
+        client_id:     client_id,
+        client_secret: client_secret
     )
     client.exchange_code_for_token code
   end
@@ -31,5 +36,13 @@ class AuthenticateGithubUserUseCase
     client.user.to_h
         .slice(:login, :avatar_url, :url, :name)
         .merge(provider: 'github')
+  end
+
+  def prepare_user_for(user_data)
+    @user = if User.exists?(login: user_data[:login])
+      User.find_by_login(user_data[:login])
+    else
+      User.create user_data
+    end
   end
 end
