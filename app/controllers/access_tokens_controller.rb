@@ -7,6 +7,10 @@ class AccessTokensController < ApplicationController
     render json: access_token
   end
 
+  def destroy
+    render json: { }, status: :forbidden
+  end
+
   private
 
   def wrong_github_code_error
