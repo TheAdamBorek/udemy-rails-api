@@ -30,6 +30,11 @@ RSpec.describe AccessTokensController, type: :controller do
     end
 
     context "when code is invalid" do
+      let(:sawyer_error) { double("Sawyer::Resource", error: "bad_verification_code") }
+      before do
+        allow_any_instance_of(Octokit::Client)
+            .to receive(:exchange_code_for_token).and_return(sawyer_error)
+      end
       subject { post :create, params: {'code' => 'invalid_code'} }
       it_behaves_like "invalid_code"
     end
@@ -50,6 +55,10 @@ RSpec.describe AccessTokensController, type: :controller do
             .to receive(:exchange_code_for_token).and_return('valid_access_token')
         allow_any_instance_of(Octokit::Client)
             .to receive(:user).and_return(user_data)
+      end
+
+      it "creates a new User object" do
+        expect { subject }.to change { User.count }.by 1
       end
 
       it "render a 200 OK status code" do

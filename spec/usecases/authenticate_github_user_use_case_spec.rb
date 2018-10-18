@@ -6,18 +6,18 @@ describe AuthenticateGithubUserUseCase do
 
     shared_examples_for 'wrong_code' do
       context 'when code is incorrect' do
-        let(:error) do
+        let(:sawyer_error) do
           double("Sawyer::Resource", error: "bad_verification_code")
         end
 
         before do
           allow_any_instance_of(Octokit::Client)
-              .to receive(:exchange_code_for_token).and_return(error)
+              .to receive(:exchange_code_for_token).and_return(sawyer_error)
         end
 
         it 'should raise an error' do
           expect { subject }
-              .to raise_error AuthenticationError
+              .to raise_error AuthenticateGithubUserUseCase::AuthenticationError
         end
       end
     end

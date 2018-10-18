@@ -1,5 +1,3 @@
-
-
 class AuthenticateGithubUserUseCase
   class AuthenticationError < StandardError; end
 
