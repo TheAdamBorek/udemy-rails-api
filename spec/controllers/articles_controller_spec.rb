@@ -30,7 +30,7 @@ describe ArticlesController do
 
   describe '#show' do
     let(:article) { create :article }
-    subject { get :show, params:  { id: article.id } }
+    subject { get :show, params: {id: article.id} }
 
     it 'should return success response' do
       subject
@@ -42,6 +42,76 @@ describe ArticlesController do
       expect(json_data['attributes']).to eq expected_attributes_for(article)
     end
   end
+
+  describe '#create' do
+    subject { post :create }
+
+    it_behaves_like 'resource_with_restricted_access'
+
+    context 'when authenticated' do
+      let(:user) { create :user }
+      let(:access_token) { user.create_access_token }
+
+      before { request.headers['Authorization'] = "Bearer #{access_token.token}" }
+
+      context 'when form is invalid' do
+        let(:invalid_params) do
+          {
+              data: {
+                  attributes: {
+                      title:   '',
+                      content: ''
+                  }
+              }
+          }
+        end
+        subject { post :create, params: invalid_params }
+
+        it "should has proper status code" do
+          subject
+          expect(response).to have_http_status :unprocessable_entity
+        end
+
+        it "should return an validation error" do
+          subject
+          expect(json_errors).to include({"source" => {"pointer" => "/data/attributes/title"},
+                                          "detail" => "can't be blank"},
+                                         "source" => {"pointer" => "/data/attributes/content"},
+                                         "detail" => "can't be blank")
+        end
+      end
+
+      context 'when form is valid' do
+        let(:valid_params) do
+          {
+              'data' => {
+                  'attributes' => {
+                      'title'   => 'The title',
+                      'content' => 'The content'
+                  }
+              }
+          }
+        end
+
+        subject { post :create, params: valid_params }
+
+        it "responses with 201 status" do
+          subject
+          expect(response).to have_http_status :created
+        end
+
+        it "saves the article" do
+          expect { subject }.to change { Article.count }.by 1
+        end
+
+        it "response returns saved article" do
+          subject
+          expect(json_data['attributes']).to include valid_params['data']['attributes'].merge('slug' => 'the-title')
+        end
+      end
+    end
+  end
+
 
   def expected_attributes_for(article)
     {

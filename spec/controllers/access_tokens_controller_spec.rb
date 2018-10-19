@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe AccessTokensController, type: :controller do
   describe "#create" do
     shared_examples_for "invalid_code" do
-      let(:error) do
+      let(:authentication_error) do
         {
             "status" => 401,
             "source" => {"pointer" => "/code"},
@@ -20,7 +20,7 @@ RSpec.describe AccessTokensController, type: :controller do
       it "should render proper error" do
         subject
         expect(json_errors.length).to eq 1
-        expect(json_errors).to include error
+        expect(json_errors).to include authentication_error
       end
     end
 
@@ -69,23 +69,30 @@ RSpec.describe AccessTokensController, type: :controller do
       it "renders a valid json of access_token" do
         subject
         access_token = User.find_by_login('jsmith1').access_token.token
-        expect(json_data['attributes']).to eq( {'token' => access_token} )
+        expect(json_data['attributes']).to eq({'token' => access_token})
       end
     end
   end
 
   describe "#destroy" do
     subject { delete :destroy }
+    it_behaves_like 'resource_with_restricted_access'
 
     context "when request is valid" do
-      it "should return proper status code" do
+      let(:user) { create :user }
+      let(:access_token) { user.create_access_token }
+
+      before { request.headers['Authorization'] = "Bearer #{access_token.token}" }
+
+      it "should return 204 status code" do
         subject
-        expect(response).to have_http_status :forbidden
+        expect(response).to have_http_status :no_content
       end
-    end
 
-    context "when request is invalid" do
-
+      it "should check if the access token is destroyed" do
+        expect { subject }.to change { AccessToken.count }.by -1
+        expect(AccessToken.find_by_token access_token.token).to be_nil
+      end
     end
   end
 end
