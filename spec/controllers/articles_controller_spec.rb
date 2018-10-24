@@ -112,6 +112,30 @@ describe ArticlesController do
     end
   end
 
+  describe '#update' do
+    let(:article) { create :article }
+    subject { patch :update, params: { id: article.id } }
+
+    it_behaves_like 'resource_with_restricted_access'
+
+    context "when it's authenticated" do
+      let(:user) { create :user }
+      let(:access_token) { user.create_access_token }
+      before do
+        request.headers['Authorization'] = "Bearer #{access_token.token}"
+      end
+
+      context 'when request is invalid' do
+
+      end
+
+      context 'when request is valid' do
+
+      end
+
+    end
+  end
+
 
   def expected_attributes_for(article)
     {
